@@ -1,0 +1,47 @@
+refresh:
+  name: Refresh
+  description: Manually refresh the VMA alerts data.
+  fields:
+    entity_id:
+      name: Entity
+      description: The entity to refresh. If not specified, all VMA alert entities will be refreshed.
+      example: "binary_sensor.vma_alerts_active"
+      selector:
+        entity:
+          integration: vma_alerts
+
+get_alert_details:
+  name: Get Alert Details
+  description: Get detailed information about a specific alert and fire an event with the details.
+  fields:
+    alert_id:
+      name: Alert ID
+      description: The unique identifier of the alert to get details for.
+      required: true
+      example: "vma_12345"
+      selector:
+        text:
+
+webhook_alert:
+  name: Webhook Alert
+  description: Send alert data to a webhook endpoint for external processing (e.g., Node-RED).
+  fields:
+    webhook_url:
+      name: Webhook URL
+      description: The URL to send the alert data to.
+      required: true
+      example: "http://localhost:1880/vma_alerts"
+      selector:
+        text:
+    alert_id:
+      name: Alert ID
+      description: The unique identifier of a specific alert to send. If not specified, all active alerts will be sent if include_all is true.
+      example: "vma_12345"
+      selector:
+        text:
+    include_all:
+      name: Include All Alerts
+      description: If true, all active alerts will be sent to the webhook. Ignored if alert_id is specified.
+      default: false
+      selector:
+        boolean: 

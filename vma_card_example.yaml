@@ -1,0 +1,49 @@
+type: vertical-stack
+cards:
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.vma_alerts_active
+        state: "on"
+    card:
+      type: alarm-panel
+      name: VMA Alerts
+      states:
+        - armed_away
+      entity: binary_sensor.vma_alerts_active
+
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.vma_alerts_active
+        state: "on"
+    card:
+      type: markdown
+      content: >
+        ## ⚠️ Active VMA Alerts ⚠️
+
+        {% for alert_id in state_attr('binary_sensor.vma_alerts_active', 'alert_ids') %}
+          {% set alert_entity = 'sensor.' ~ alert_id %}
+          {% if states(alert_entity) %}
+            ### {{ state_attr(alert_entity, 'headline') }}
+            **Severity:** {{ states(alert_entity) }}
+            **Areas:** {{ state_attr(alert_entity, 'area')|join(', ') }}
+            **Description:** {{ state_attr(alert_entity, 'description') }}
+            {% if state_attr(alert_entity, 'instruction') %}
+            **Instructions:** {{ state_attr(alert_entity, 'instruction') }}
+            {% endif %}
+            **Expires:** {{ state_attr(alert_entity, 'expires') }}
+            ---
+          {% endif %}
+        {% endfor %}
+
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.vma_alerts_active
+        state: "off"
+    card:
+      type: markdown
+      content: >
+        ## No Active VMA Alerts
+        
+        There are currently no active VMA alerts for your area.
+        
+        Last checked: {{ states.sensor.vma_alerts_count.last_updated.strftime('%Y-%m-%d %H:%M:%S') }} 

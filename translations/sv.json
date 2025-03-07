@@ -1,0 +1,41 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Svenska VMA-meddelanden",
+        "description": "Konfigurera integration för Svenska VMA-meddelanden",
+        "data": {
+          "geocodes": "Geografiska områden (välj ett eller flera län eller kommuner)",
+          "language": "Föredraget språk",
+          "show_expired": "Visa utgångna meddelanden",
+          "scan_interval": "Uppdateringsintervall i sekunder",
+          "use_test_api": "Använd test-API (för utveckling och testning)"
+        }
+      }
+    },
+    "error": {
+      "invalid_geocode": "Ogiltigt format på geografisk kod. Ange en numerisk kod."
+    },
+    "abort": {
+      "already_configured": "Denna integration är redan konfigurerad."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Alternativ för Svenska VMA-meddelanden",
+        "description": "Uppdatera inställningar för Svenska VMA-meddelanden",
+        "data": {
+          "geocodes": "Geografiska områden (välj ett eller flera län eller kommuner)",
+          "language": "Föredraget språk",
+          "show_expired": "Visa utgångna meddelanden",
+          "scan_interval": "Uppdateringsintervall i sekunder",
+          "use_test_api": "Använd test-API (för utveckling och testning)"
+        }
+      }
+    },
+    "error": {
+      "invalid_geocode": "Ogiltigt format på geografisk kod. Ange en numerisk kod."
+    }
+  }
+} 

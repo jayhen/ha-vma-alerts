@@ -1,0 +1,253 @@
+[
+    {
+        "id": "vma-alerts-flow",
+        "type": "tab",
+        "label": "VMA Alerts Flow",
+        "disabled": false,
+        "info": "Example flow for handling VMA alerts in Node-RED"
+    },
+    {
+        "id": "vma-new-alert-event",
+        "type": "server-events",
+        "z": "vma-alerts-flow",
+        "name": "Listen for new VMA alerts",
+        "server": "server",
+        "event_type": "vma_alerts_new_alert",
+        "x": 150,
+        "y": 100,
+        "wires": [
+            [
+                "vma-alert-details",
+                "vma-alert-notification"
+            ]
+        ]
+    },
+    {
+        "id": "vma-alert-details",
+        "type": "function",
+        "z": "vma-alerts-flow",
+        "name": "Format Alert Details",
+        "func": "// Extract alert details from the event\nconst alertId = msg.payload.alert_id;\nconst headline = msg.payload.headline;\nconst severity = msg.payload.severity;\nconst areas = Array.isArray(msg.payload.area) ? msg.payload.area.join(', ') : msg.payload.area;\nconst description = msg.payload.description;\nconst instruction = msg.payload.instruction;\n\n// Format message for display\nmsg.payload = {\n    alertId: alertId,\n    title: `VMA Alert: ${headline}`,\n    message: `Severity: ${severity}\\nAreas: ${areas}\\n\\n${description}\\n\\n${instruction ? 'Instructions: ' + instruction : ''}`\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 100,
+        "wires": [
+            [
+                "vma-dashboard-display"
+            ]
+        ]
+    },
+    {
+        "id": "vma-alert-notification",
+        "type": "api-call-service",
+        "z": "vma-alerts-flow",
+        "name": "Send Mobile Notification",
+        "server": "server",
+        "version": 5,
+        "debugenabled": false,
+        "domain": "notify",
+        "service": "mobile_app",
+        "areaId": [],
+        "deviceId": [],
+        "entityId": [],
+        "data": "{\"message\":\"{{payload.headline}}\",\"title\":\"⚠️ VMA Alert\",\"data\":{\"push\":{\"sound\":\"default\",\"priority\":\"high\"}}}",
+        "dataType": "json",
+        "mergeContext": "",
+        "mustacheAltTags": false,
+        "outputProperties": [],
+        "queue": "none",
+        "x": 400,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "vma-dashboard-display",
+        "type": "ui_template",
+        "z": "vma-alerts-flow",
+        "group": "vma_alerts_group",
+        "name": "VMA Alert Display",
+        "order": 1,
+        "width": "6",
+        "height": "4",
+        "format": "<div ng-if=\"msg.payload\" style=\"background-color: #ffebee; padding: 10px; border-radius: 5px; border-left: 5px solid #f44336;\">\n    <h3 style=\"color: #d32f2f;\">{{msg.payload.title}}</h3>\n    <pre style=\"white-space: pre-wrap;\">{{msg.payload.message}}</pre>\n    <button ng-click=\"send({payload: {command: 'acknowledge', alertId: msg.payload.alertId}})\" style=\"background-color: #d32f2f; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;\">Acknowledge</button>\n</div>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 650,
+        "y": 100,
+        "wires": [
+            [
+                "vma-acknowledge-alert"
+            ]
+        ]
+    },
+    {
+        "id": "vma-acknowledge-alert",
+        "type": "switch",
+        "z": "vma-alerts-flow",
+        "name": "Check for Acknowledge",
+        "property": "payload.command",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "acknowledge",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 900,
+        "y": 100,
+        "wires": [
+            [
+                "vma-store-acknowledged"
+            ]
+        ]
+    },
+    {
+        "id": "vma-store-acknowledged",
+        "type": "function",
+        "z": "vma-alerts-flow",
+        "name": "Store Acknowledged Alert",
+        "func": "// Get the alert ID\nconst alertId = msg.payload.alertId;\n\n// Store in flow context that this alert has been acknowledged\nflow.set(`acknowledged_${alertId}`, true);\n\n// Clear the display\nmsg.payload = null;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1150,
+        "y": 100,
+        "wires": [
+            [
+                "vma-dashboard-display"
+            ]
+        ]
+    },
+    {
+        "id": "vma-get-all-alerts",
+        "type": "inject",
+        "z": "vma-alerts-flow",
+        "name": "Get All Alerts (Manual)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 170,
+        "y": 240,
+        "wires": [
+            [
+                "vma-call-webhook-service"
+            ]
+        ]
+    },
+    {
+        "id": "vma-call-webhook-service",
+        "type": "api-call-service",
+        "z": "vma-alerts-flow",
+        "name": "Call webhook_alert Service",
+        "server": "server",
+        "version": 5,
+        "debugenabled": false,
+        "domain": "vma_alerts",
+        "service": "webhook_alert",
+        "areaId": [],
+        "deviceId": [],
+        "entityId": [],
+        "data": "{\"webhook_url\":\"http://localhost:1880/vma_alerts\",\"include_all\":true}",
+        "dataType": "json",
+        "mergeContext": "",
+        "mustacheAltTags": false,
+        "outputProperties": [],
+        "queue": "none",
+        "x": 400,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "vma-webhook-endpoint",
+        "type": "http in",
+        "z": "vma-alerts-flow",
+        "name": "VMA Webhook Endpoint",
+        "url": "/vma_alerts",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 170,
+        "y": 320,
+        "wires": [
+            [
+                "vma-process-webhook-data",
+                "vma-webhook-response"
+            ]
+        ]
+    },
+    {
+        "id": "vma-webhook-response",
+        "type": "http response",
+        "z": "vma-alerts-flow",
+        "name": "HTTP Response",
+        "statusCode": "200",
+        "headers": {},
+        "x": 400,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "vma-process-webhook-data",
+        "type": "function",
+        "z": "vma-alerts-flow",
+        "name": "Process Webhook Data",
+        "func": "// Check if we have alerts data\nif (msg.payload && msg.payload.alerts && Array.isArray(msg.payload.alerts)) {\n    // Log the number of alerts received\n    node.log(`Received ${msg.payload.alerts.length} alerts from webhook`);\n    \n    // Process each alert\n    const alerts = msg.payload.alerts;\n    \n    // Send each alert as a separate message\n    const messages = [];\n    \n    for (const alert of alerts) {\n        // Check if this alert has already been acknowledged\n        const alertId = alert.id;\n        const isAcknowledged = flow.get(`acknowledged_${alertId}`);\n        \n        if (!isAcknowledged) {\n            messages.push({\n                payload: {\n                    alertId: alertId,\n                    title: `VMA Alert: ${alert.headline}`,\n                    message: `Severity: ${alert.state}\\nAreas: ${Array.isArray(alert.area) ? alert.area.join(', ') : alert.area}\\n\\n${alert.description}\\n\\n${alert.instruction ? 'Instructions: ' + alert.instruction : ''}`\n                }\n            });\n        }\n    }\n    \n    return [messages];\n} else if (msg.payload && msg.payload.id) {\n    // Single alert\n    const alertId = msg.payload.id;\n    const isAcknowledged = flow.get(`acknowledged_${alertId}`);\n    \n    if (!isAcknowledged) {\n        msg.payload = {\n            alertId: alertId,\n            title: `VMA Alert: ${msg.payload.headline}`,\n            message: `Severity: ${msg.payload.state}\\nAreas: ${Array.isArray(msg.payload.area) ? msg.payload.area.join(', ') : msg.payload.area}\\n\\n${msg.payload.description}\\n\\n${msg.payload.instruction ? 'Instructions: ' + msg.payload.instruction : ''}`\n        };\n        return msg;\n    }\n}\n\n// No valid data or all alerts acknowledged\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 320,
+        "wires": [
+            [
+                "vma-dashboard-display"
+            ]
+        ]
+    },
+    {
+        "id": "vma_alerts_group",
+        "type": "ui_group",
+        "name": "VMA Alerts",
+        "tab": "vma_alerts_tab",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "vma_alerts_tab",
+        "type": "ui_tab",
+        "name": "VMA Alerts",
+        "icon": "warning",
+        "disabled": false,
+        "hidden": false
+    }
+] 

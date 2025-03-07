@@ -1,0 +1,8 @@
+{
+  "name": "Swedish VMA Alerts",
+  "content_in_root": false,
+  "render_readme": true,
+  "domains": ["sensor", "binary_sensor"],
+  "country": "SE",
+  "homeassistant": "2023.8.0"
+} 

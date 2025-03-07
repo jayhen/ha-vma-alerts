@@ -1,0 +1,117 @@
+type: vertical-stack
+cards:
+  - type: entities
+    title: VMA Alerts Status
+    entities:
+      - entity: binary_sensor.vma_alerts_active
+        name: Active Alerts
+      - entity: sensor.vma_alerts_count
+        name: Number of Alerts
+    state_color: true
+    
+  - type: markdown
+    title: Binary Sensor Attributes
+    content: >
+      ## Binary Sensor Attributes
+      
+      State: {{ states('binary_sensor.vma_alerts_active') }}
+      
+      Alert IDs: {{ state_attr('binary_sensor.vma_alerts_active', 'alert_ids') }}
+      
+      Active Alerts Count: {{ state_attr('binary_sensor.vma_alerts_active', 'active_alerts') }}
+      
+  - type: markdown
+    title: Available Alert Entities
+    content: >
+      ## Available Alert Entities
+      
+      {% for entity_id in states.sensor | selectattr('entity_id', 'search', 'vma') | map(attribute='entity_id') | list %}
+        - {{ entity_id }}: {{ states(entity_id) }}
+      {% endfor %}
+      
+      ## All SRCAP Entities
+      
+      {% for entity_id in states.sensor | selectattr('entity_id', 'search', 'srcap') | map(attribute='entity_id') | list %}
+        - {{ entity_id }}: {{ states(entity_id) }}
+      {% endfor %}
+      
+  - type: markdown
+    title: Entity Attributes for First Alert
+    content: >
+      {% set first_id = state_attr('binary_sensor.vma_alerts_active', 'alert_ids')[0] if state_attr('binary_sensor.vma_alerts_active', 'alert_ids') else None %}
+      
+      {% if first_id %}
+        ## Attributes for Alert ID: {{ first_id }}
+        
+        {% for entity_id in states.sensor | selectattr('entity_id', 'search', first_id) | map(attribute='entity_id') | list %}
+          ### Entity: {{ entity_id }}
+          
+          State: {{ states(entity_id) }}
+          
+          {% for attr, value in states[entity_id].attributes.items() %}
+            - {{ attr }}: {{ value }}
+          {% endfor %}
+        {% else %}
+          No entity found with ID containing {{ first_id }}
+          
+          Trying to find by searching for 'srcap':
+          
+          {% for entity_id in states.sensor | selectattr('entity_id', 'search', 'srcap') | map(attribute='entity_id') | list %}
+            {% if first_id in entity_id %}
+              ### Entity: {{ entity_id }}
+              
+              State: {{ states(entity_id) }}
+              
+              {% for attr, value in states[entity_id].attributes.items() %}
+                - {{ attr }}: {{ value }}
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+      {% else %}
+        No alert IDs found in binary_sensor.vma_alerts_active attributes
+      {% endif %}
+      
+  - type: markdown
+    title: Entity Attributes for Second Alert
+    content: >
+      {% set alert_ids = state_attr('binary_sensor.vma_alerts_active', 'alert_ids') %}
+      {% set second_id = alert_ids[1] if alert_ids and alert_ids|length > 1 else None %}
+      
+      {% if second_id %}
+        ## Attributes for Alert ID: {{ second_id }}
+        
+        {% for entity_id in states.sensor | selectattr('entity_id', 'search', 'srcap') | map(attribute='entity_id') | list %}
+          {% if second_id in entity_id %}
+            ### Entity: {{ entity_id }}
+            
+            State: {{ states(entity_id) }}
+            
+            {% for attr, value in states[entity_id].attributes.items() %}
+              - {{ attr }}: {{ value }}
+            {% endfor %}
+          {% endif %}
+        {% else %}
+          No entity found with ID containing {{ second_id }}
+        {% endfor %}
+      {% else %}
+        No second alert ID found in binary_sensor.vma_alerts_active attributes
+      {% endif %}
+      
+  - type: markdown
+    title: All VMA Alerts
+    content: >
+      ## All VMA Alerts
+      
+      {% for entity_id in states.sensor | selectattr('entity_id', 'search', 'srcap') | map(attribute='entity_id') | list %}
+        ### {{ states[entity_id].name }}
+        
+        - State: {{ states(entity_id) }}
+        - Headline: {{ state_attr(entity_id, 'headline') }}
+        - Status: {{ state_attr(entity_id, 'status') }}
+        - Message Type: {{ state_attr(entity_id, 'message_type') }}
+        - Event: {{ state_attr(entity_id, 'event') }}
+        - Areas: {{ state_attr(entity_id, 'area') }}
+        
+        ---
+      {% endfor %} 

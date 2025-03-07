@@ -1,0 +1,41 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Swedish VMA Alerts",
+        "description": "Set up Swedish VMA Alerts integration",
+        "data": {
+          "geocodes": "Geographic areas (select one or more counties or municipalities)",
+          "language": "Preferred language",
+          "show_expired": "Show expired alerts",
+          "scan_interval": "Update interval in seconds",
+          "use_test_api": "Use test API (for development and testing)"
+        }
+      }
+    },
+    "error": {
+      "invalid_geocode": "Invalid geographic code format. Please enter a numeric code."
+    },
+    "abort": {
+      "already_configured": "This integration is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Swedish VMA Alerts Options",
+        "description": "Update Swedish VMA Alerts settings",
+        "data": {
+          "geocodes": "Geographic areas (select one or more counties or municipalities)",
+          "language": "Preferred language",
+          "show_expired": "Show expired alerts",
+          "scan_interval": "Update interval in seconds",
+          "use_test_api": "Use test API (for development and testing)"
+        }
+      }
+    },
+    "error": {
+      "invalid_geocode": "Invalid geographic code format. Please enter a numeric code."
+    }
+  }
+} 

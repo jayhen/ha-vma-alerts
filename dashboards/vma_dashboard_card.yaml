@@ -1,0 +1,148 @@
+type: vertical-stack
+cards:
+  - type: entities
+    title: VMA Alerts Status
+    entities:
+      - entity: binary_sensor.vma_alerts_active
+        name: Active Alerts
+      - entity: sensor.vma_alerts_count
+        name: Number of Alerts
+    state_color: true
+    
+  - type: markdown
+    title: Debug Info
+    content: >
+      ## Debug Info
+      
+      Active Alerts: {{ state_attr('binary_sensor.vma_alerts_active', 'active_alerts') }}
+      
+      Alert IDs: {{ state_attr('binary_sensor.vma_alerts_active', 'alert_ids') }}
+      
+      Available Entities with 'srcap':
+      
+      {% for entity_id in states.sensor | selectattr('entity_id', 'search', 'srcap') | map(attribute='entity_id') | list %}
+        - {{ entity_id }}: {{ states(entity_id) }}
+      {% endfor %}
+    
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.vma_alerts_active
+        state: "on"
+    card:
+      type: markdown
+      content: |
+        # ⚠️ Active VMA Alerts ⚠️
+
+        {% for alert_id in state_attr('binary_sensor.vma_alerts_active', 'alert_ids') %}
+          {% set found = false %}
+          {% set alert_id_lower = alert_id | lower %}
+          {% for entity_id in states.sensor | selectattr('entity_id', 'search', 'srcap') | map(attribute='entity_id') | list %}
+            {% set entity_id_lower = entity_id | lower %}
+            {% if alert_id_lower in entity_id_lower %}
+              {% set found = true %}
+              ## {{ states[entity_id].name }}
+              
+              **Severity:** {{ states(entity_id) }}
+              
+              **Alert ID:** {{ alert_id }}
+              
+              **Entity ID:** {{ entity_id }}
+              
+              {% if state_attr(entity_id, 'status') %}**Status:** {{ state_attr(entity_id, 'status') }}{% endif %}
+              
+              {% if state_attr(entity_id, 'message_type') %}**Type:** {{ state_attr(entity_id, 'message_type') }}{% endif %}
+              
+              {% if state_attr(entity_id, 'event') %}**Event:** {{ state_attr(entity_id, 'event') }}{% endif %}
+              
+              {% if state_attr(entity_id, 'area') %}**Areas:** {{ state_attr(entity_id, 'area') | join(', ') }}{% endif %}
+              
+              {% if state_attr(entity_id, 'description') %}**Description:** {{ state_attr(entity_id, 'description') }}{% endif %}
+              
+              {% if state_attr(entity_id, 'instruction') %}**Instructions:** {{ state_attr(entity_id, 'instruction') }}{% endif %}
+              
+              {% if state_attr(entity_id, 'sent') %}**Sent:** {{ state_attr(entity_id, 'sent') }}{% endif %}
+              
+              {% if state_attr(entity_id, 'expires') %}**Expires:** {{ state_attr(entity_id, 'expires') }}{% endif %}
+              
+              ---
+            {% endif %}
+          {% endfor %}
+          {% if not found %}
+            ## Alert ID: {{ alert_id }}
+            
+            No entity found for this alert ID.
+            
+            ---
+          {% endif %}
+        {% endfor %}
+        
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.vma_alerts_active
+        state: "off"
+    card:
+      type: markdown
+      content: >
+        ## No Active VMA Alerts
+        
+        There are currently no active VMA alerts for your area.
+        
+        Last checked: {{ states.sensor.vma_alerts_count.last_updated.strftime('%Y-%m-%d %H:%M:%S') }}
+        
+  - type: markdown
+    title: All SRCAP Entities
+    content: |
+      ## All SRCAP Entities
+      
+      {% for entity_id in states.sensor | selectattr('entity_id', 'search', 'srcap') | map(attribute='entity_id') | list %}
+        ### {{ states[entity_id].name }}
+        
+        **State:** {{ states(entity_id) }}
+        
+        **Entity ID:** {{ entity_id }}
+        
+        {% if state_attr(entity_id, 'status') %}**Status:** {{ state_attr(entity_id, 'status') }}{% endif %}
+        
+        {% if state_attr(entity_id, 'message_type') %}**Type:** {{ state_attr(entity_id, 'message_type') }}{% endif %}
+        
+        {% if state_attr(entity_id, 'event') %}**Event:** {{ state_attr(entity_id, 'event') }}{% endif %}
+        
+        {% if state_attr(entity_id, 'area') %}**Areas:** {{ state_attr(entity_id, 'area') | join(', ') }}{% endif %}
+        
+        {% if state_attr(entity_id, 'description') %}**Description:** {{ state_attr(entity_id, 'description') }}{% endif %}
+        
+        ---
+      {% endfor %}
+      
+  - type: entities
+    title: Available Alert Entities
+    entities:
+      - entity: sensor.vma_alerts_count
+        name: Alert Count
+        secondary_info: last-updated
+    
+  - type: markdown
+    title: Alert IDs
+    content: >
+      ## Alert IDs from binary_sensor.vma_alerts_active
+      
+      Alert IDs: {{ state_attr('binary_sensor.vma_alerts_active', 'alert_ids') }}
+      
+      Active Alerts: {{ state_attr('binary_sensor.vma_alerts_active', 'active_alerts') }}
+      
+      ## All Sensors
+      
+      {% for entity_id in states.sensor | map(attribute='entity_id') | list %}
+        {% if 'vma' in entity_id or 'alert' in entity_id or 'srcap' in entity_id %}
+          - {{ entity_id }}: {{ states(entity_id) }}
+        {% endif %}
+      {% endfor %}
+      
+  - type: entities
+    title: All VMA Alert Sensors
+    entities:
+      {% for entity_id in states.sensor | map(attribute='entity_id') | list %}
+        {% if 'vma' in entity_id or 'alert' in entity_id or 'srcap' in entity_id %}
+          - entity: {{ entity_id }}
+        {% endif %}
+      {% endfor %} 

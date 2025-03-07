@@ -1,0 +1,12 @@
+{
+  "domain": "vma_alerts",
+  "name": "Swedish VMA Alerts",
+  "documentation": "https://github.com/yourusername/ha-vma-alerts",
+  "issue_tracker": "https://github.com/yourusername/ha-vma-alerts/issues",
+  "dependencies": [],
+  "codeowners": ["@jayhen"],
+  "requirements": [],
+  "iot_class": "cloud_polling",
+  "version": "1.0.0",
+  "config_flow": true
+}
